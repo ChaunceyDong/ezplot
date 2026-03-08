@@ -8,6 +8,135 @@ from plotly.subplots import make_subplots
 from sklearn.preprocessing import MinMaxScaler
 
 
+def plot_ts(df1, df2=None, plot_file_name="plotly-ts.html", output_html=True, is_dismiss_no_trading_time=True,
+            sig_df=None, output_obj=False, hover_cols_df=None):
+    """
+    df1 and df2 use different y-axis
+    """
+    # Create figure with secondary y-axis
+    if type(df1) == pd.Series:
+        df1 = pd.DataFrame(df1)
+
+    if type(df2) == pd.DataFrame:
+        df2 = pd.DataFrame(df2)
+
+    if hover_cols_df is not None:
+        df1['hover_text'] = ""
+        for col in hover_cols_df.columns:
+            df1['hover_text'] += col + ": " + hover_cols_df[col].astype(str) + "<br>"
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    for col in df1.columns:
+        fig.add_trace(
+            go.Scatter(
+                name=str(col),
+                x=df1.index,
+                y=df1[col],
+                mode='lines',
+                text=df1['hover_text'] if hover_cols_df is not None else None,
+            ),
+            secondary_y=False
+        )
+
+    if df2 is not None:
+        for col in df2.columns:
+            fig.add_trace(
+                go.Scatter(
+                    name=str(col),
+                    x=df2.index,
+                    y=df2[col],
+                    mode='lines',
+                ),
+                secondary_y=True
+            )
+
+    if sig_df is not None:
+        fig = add_sig_maker(sig_df, fig, df1['hover_text'])
+
+    if is_dismiss_no_trading_time:
+        fig.update_xaxes(
+            rangebreaks=[
+                dict(bounds=[11.5, 13], pattern="hour")
+            ]
+        )
+
+    if output_obj:
+        return fig
+
+    if output_html:
+        plotly.offline.plot(fig, filename=plot_file_name)
+    else:
+        fig.show()
+
+
+def add_sig_maker(df, fig, hover_text_series=None):
+    """
+    plot signal scatters
+    df should have ['signal', 'price']. signal values be 0, 1, -1
+    'hover_text' is optional
+    """
+
+    df_buy = df.loc[df['signal'] == 1, ['price', 'signal']]
+    fig.add_trace(
+        go.Scatter(
+            name='buy',
+            x=df_buy.index,
+            y=df_buy['price'],
+            text=hover_text_series,
+            mode='markers',
+            marker=dict(
+                color='red',
+                size=10,
+                symbol='triangle-up',
+            )
+        )
+    )
+
+    df_sell = df.loc[df['signal'] == -1, ['price', 'signal']]
+    fig.add_trace(
+        go.Scatter(
+            name='sell',
+            x=df_sell.index,
+            y=df_sell['price'],
+            text=hover_text_series,
+            mode='markers',
+            marker=dict(
+                color='green',
+                size=10,
+                symbol='triangle-down',
+            ),
+        )
+    )
+    return fig
+
+
+def plot_two_ts(series1, series2, plot_file_name="", series1_name="", series2_name="", output_html=False):
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Scatter(
+            name=series1_name if not series1_name == "" else str(series1.name),
+            x=series1.index,
+            y=series1,
+            mode='lines',
+        ),
+        secondary_y=False
+    )
+    fig.add_trace(
+        go.Scatter(
+            name=series2_name if not series2_name == "" else str(series2.name),
+            x=series2.index,
+            y=series2,
+            mode='lines',
+        ),
+        secondary_y=True
+    )
+    if output_html:
+        plotly.offline.plot(fig, filename=plot_file_name)
+    else:
+        fig.show()
+
+
 def add_lines(fig, df, cols_plot, **kwargs):
     """Add lines to fig with given y_plot"""
     if type(cols_plot) == str:
