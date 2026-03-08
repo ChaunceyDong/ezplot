@@ -1,6 +1,6 @@
 """ezplot - Interactive plotting toolkit for time-series and HFT data."""
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 from .core import (
     add_lines,
