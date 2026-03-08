@@ -10,34 +10,41 @@ pip install easyplots
 
 ## Quick Start
 
-```python
-import pandas as pd
-import ezplot  # auto-registers df.ezplot()
+### `df.ezplot()` Layout
 
-# DataFrame quick plot — dual y-axis with subplots
-df.ezplot(y=['price', 'volume'], y2=['signal'], yd=['pnl'])
-
-# Or call directly
-from ezplot import df_plot2, plot_ts
-
-df_plot2(df, y=['bid', 'ask'], y2=['spread'])
-plot_ts(df[['mid']], df[['volume']])
+```
+        +--------------+
+        |              |
+      y |              | y2
+        |              |
+        +--------------+
+     yd |              | yd2
+        +--------------+
+    yd3 |              |
+        +--------------+
 ```
 
-## API
+- **y / y2** — Main panel with dual y-axes (left / right)
+- **yd / yd2** — Secondary panel with dual y-axes
+- **yd3** — Third panel (single y-axis)
 
-### `df.ezplot(y, y2, yd, yd2, yd3, ...)`
+All panels share the x-axis and support zooming/panning together.
 
-Monkey-patched onto `pd.DataFrame`. Shortcut for `df_plot2()`.
+### Usage
 
-### `df_plot2(df, y, y2, yd, yd2, yd3, ...)`
+```python
+import ezplot  # auto-registers df.ezplot()
 
-Multi-panel plotly chart with dual y-axes.
-
-### `plot_ts(df1, df2, ...)`
-
-Plot one or two DataFrames with dual y-axis.
-
+df.ezplot(
+    y=["mid_price", "theo"],       # main panel, left y-axis
+    y2=["pnl"],                    # main panel, right y-axis
+    yd=["spread"],                 # secondary panel, left y-axis
+    yd2=["volume"],                # secondary panel, right y-axis
+    yd3=["position"],              # third panel
+    break_time=(11.5, 13),         # hide lunch break
+)
+```
+ 
 ## License
 
 MIT
