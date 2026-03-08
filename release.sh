@@ -18,13 +18,13 @@ sed -i "s/version = \"$CURRENT\"/version = \"$VERSION\"/" pyproject.toml
 sed -i "s/__version__ = \"$CURRENT\"/__version__ = \"$VERSION\"/" src/ezplot/__init__.py
 
 # 2. Verify import
-python -c "import ezplot; assert ezplot.__version__ == '$VERSION', f'Version mismatch: {ezplot.__version__}'"
+PYTHONPATH=src python -c "import ezplot; assert ezplot.__version__ == '$VERSION', f'Version mismatch: {ezplot.__version__}'"
 echo "Import check passed"
 
 # 3. Commit, tag, push
 git add pyproject.toml src/ezplot/__init__.py
 git commit -m "v$VERSION: $MSG"
 git tag "v$VERSION"
-proxyon && git push && git push origin "v$VERSION"
+git push && git push origin "v$VERSION"
 
 echo "Released v$VERSION"
